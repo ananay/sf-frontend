@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Building2, Mail, MapPin, Pencil, Phone } from "lucide-react";
+import { Building2, Mail, MapPin, Pencil, Phone, Plus } from "lucide-react";
 import { motion, useReducedMotion, type Variants } from "motion/react";
 import ContactAvatar from "./ContactAvatar";
 import DeleteContactButton from "./DeleteContactButton";
@@ -117,6 +117,28 @@ export default function ContactsGrid({ contacts }: { contacts: Contact[] }) {
           </motion.li>
         );
       })}
+
+      <motion.li
+        variants={reduceMotion ? undefined : cardVariants}
+        whileHover={reduceMotion ? undefined : { y: -6, scale: 1.012 }}
+        whileTap={reduceMotion ? undefined : { scale: 0.992 }}
+        transition={{ type: "spring", stiffness: 320, damping: 24 }}
+      >
+        <Link
+          href="/contacts/new"
+          className="glass-card group flex h-full min-h-64 flex-col items-center justify-center rounded-3xl p-6 text-center focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+        >
+          <span className="flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/15 text-primary transition-transform duration-300 group-hover:scale-110">
+            <Plus className="h-6 w-6" strokeWidth={1.8} aria-hidden="true" />
+          </span>
+          <span className="mt-4 font-display text-lg font-semibold tracking-tight text-foreground">
+            Add to contacts
+          </span>
+          <span className="mt-1 max-w-48 text-sm text-muted-foreground">
+            Create a contact with their details, photo, and addresses.
+          </span>
+        </Link>
+      </motion.li>
     </motion.ul>
   );
 }

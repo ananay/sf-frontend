@@ -49,11 +49,11 @@ jest.mock("@/app/contacts/actions", () => ({
 }));
 
 describe("ContactsGrid", () => {
-  it("renders one card per contact with view, mail, edit, and delete actions", () => {
+  it("renders contact cards with view, mail, edit, and delete actions", () => {
     render(<ContactsGrid contacts={CONTACTS} />);
 
     expect(screen.getByRole("list", { name: "Contacts" })).toBeInTheDocument();
-    expect(screen.getAllByRole("listitem")).toHaveLength(CONTACTS.length);
+    expect(screen.getAllByRole("listitem")).toHaveLength(CONTACTS.length + 1);
     expect(screen.getByRole("link", { name: "Open Ada Lovelace" })).toHaveAttribute(
       "href",
       "/contacts/1",
@@ -67,6 +67,15 @@ describe("ContactsGrid", () => {
       "/contacts/1/edit",
     );
     expect(screen.getByRole("button", { name: /delete ada lovelace/i })).toBeInTheDocument();
+  });
+
+  it("offers an add action that opens the complete contact form", () => {
+    render(<ContactsGrid contacts={CONTACTS} />);
+
+    expect(screen.getByRole("link", { name: /add to contacts/i })).toHaveAttribute(
+      "href",
+      "/contacts/new",
+    );
   });
 
   it("shows graceful labels for missing optional details", () => {
