@@ -1,6 +1,6 @@
 "use client";
 
-import { useRef, useState, type ChangeEvent } from "react";
+import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { ImagePlus, Trash2 } from "lucide-react";
 import Button from "@/components/ui/Button";
 import { MAX_PHOTO_BYTES, PHOTO_ACCEPT } from "@/lib/contacts/schema";
@@ -15,9 +15,19 @@ export default function PhotoField({ initialPhoto, error }: PhotoFieldProps) {
   const [photo, setPhoto] = useState(initialPhoto);
   const [clientError, setClientError] = useState<string>();
   const inputRef = useRef<HTMLInputElement>(null);
+  const readerRef = useRef<FileReader | null>(null);
   const message = clientError ?? error;
 
+  useEffect(
+    () => () => {
+      readerRef.current?.abort();
+    },
+    [],
+  );
+
   function choosePhoto(event: ChangeEvent<HTMLInputElement>): void {
+    readerRef.current?.abort();
+    readerRef.current = null;
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -33,17 +43,26 @@ export default function PhotoField({ initialPhoto, error }: PhotoFieldProps) {
     }
 
     const reader = new FileReader();
+    readerRef.current = reader;
     reader.onload = () => {
-      if (typeof reader.result === "string") {
+      if (readerRef.current === reader && typeof reader.result === "string") {
         setPhoto(reader.result);
         setClientError(undefined);
+        readerRef.current = null;
       }
     };
-    reader.onerror = () => setClientError("The selected photo could not be read.");
+    reader.onerror = () => {
+      if (readerRef.current === reader) {
+        setClientError("The selected photo could not be read.");
+        readerRef.current = null;
+      }
+    };
     reader.readAsDataURL(file);
   }
 
   function removePhoto(): void {
+    readerRef.current?.abort();
+    readerRef.current = null;
     setPhoto(null);
     setClientError(undefined);
     if (inputRef.current) inputRef.current.value = "";

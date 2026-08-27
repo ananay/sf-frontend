@@ -5,7 +5,34 @@ export const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
 export const PHOTO_ACCEPT = "image/jpeg,image/png,image/webp";
 const MAX_PHOTO_DATA_URI_LENGTH = 4 * Math.ceil(MAX_PHOTO_BYTES / 3) + 32;
 const PHOTO_DATA_URI_PATTERN =
-  /^data:image\/(?:jpeg|png|webp);base64,[A-Za-z0-9+/]+={0,2}$/;
+  /^data:image\/(?:jpeg|png|webp);base64,([A-Za-z0-9+/]+={0,2})$/;
+
+/** Confirm the decoded bytes match the MIME type declared by the data URI. */
+function hasMatchingImageSignature(value: string): boolean {
+  if (value === "") return true;
+  const match = PHOTO_DATA_URI_PATTERN.exec(value);
+  if (!match) return false;
+
+  try {
+    const bytes = Uint8Array.from(atob(match[1]), (character) =>
+      character.charCodeAt(0),
+    );
+    if (value.startsWith("data:image/png")) {
+      return [137, 80, 78, 71, 13, 10, 26, 10].every(
+        (byte, index) => bytes[index] === byte,
+      );
+    }
+    if (value.startsWith("data:image/jpeg")) {
+      return bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255;
+    }
+    return (
+      String.fromCharCode(...bytes.slice(0, 4)) === "RIFF" &&
+      String.fromCharCode(...bytes.slice(8, 12)) === "WEBP"
+    );
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Client/server-shared validation for the contact form.
@@ -66,6 +93,7 @@ export const contactInputSchema = z.object({
       (value) => value === "" || PHOTO_DATA_URI_PATTERN.test(value),
       "Choose a JPEG, PNG, or WebP image",
     )
+    .refine(hasMatchingImageSignature, "Photo content does not match its image type")
     .transform((value) => value || null)
     .nullable()
     .default(null),

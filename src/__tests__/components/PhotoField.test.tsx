@@ -40,4 +40,61 @@ describe("PhotoField", () => {
       expect(screen.getByRole("alert")).toHaveTextContent(/2 mb or smaller/i),
     );
   });
+
+  it("ignores a stale file read after a newer selection", async () => {
+    const originalFileReader = global.FileReader;
+
+    class DeferredFileReader {
+      static instances: DeferredFileReader[] = [];
+      result: string | ArrayBuffer | null = null;
+      onload: FileReader["onload"] = null;
+      onerror: FileReader["onerror"] = null;
+      abort = jest.fn();
+
+      constructor() {
+        DeferredFileReader.instances.push(this);
+      }
+
+      readAsDataURL(): void {}
+
+      complete(result: string): void {
+        this.result = result;
+        this.onload?.call(
+          this as unknown as FileReader,
+          new ProgressEvent("load") as ProgressEvent<FileReader>,
+        );
+      }
+    }
+
+    Object.defineProperty(global, "FileReader", {
+      configurable: true,
+      writable: true,
+      value: DeferredFileReader,
+    });
+
+    try {
+      const { container } = render(<PhotoField initialPhoto={null} />);
+      const input = screen.getByLabelText(/choose contact photo/i);
+      await userEvent.upload(input, new File(["first"], "first.png", { type: "image/png" }));
+      await userEvent.upload(input, new File(["second"], "second.png", { type: "image/png" }));
+
+      const [firstReader, secondReader] = DeferredFileReader.instances;
+      expect(firstReader.abort).toHaveBeenCalled();
+      firstReader.complete("data:image/png;base64,Zmlyc3Q=");
+      expect(container.querySelector('input[name="photo"]')).toHaveValue("");
+
+      secondReader.complete("data:image/png;base64,c2Vjb25k");
+      await waitFor(() =>
+        expect(container.querySelector('input[name="photo"]')).toHaveValue(
+          "data:image/png;base64,c2Vjb25k",
+        ),
+      );
+    } finally {
+      Object.defineProperty(global, "FileReader", {
+        configurable: true,
+        writable: true,
+        value: originalFileReader,
+      });
+    }
+  });
 });

@@ -78,6 +78,11 @@ describe("contactInputSchema", () => {
         values({ photo: "data:image/svg+xml;base64,PHN2Zz4=" }),
       ).success,
     ).toBe(false);
+    expect(
+      contactInputSchema.safeParse(
+        values({ photo: "data:image/png;base64,SGVsbG8=" }),
+      ).success,
+    ).toBe(false);
   });
 });
 
