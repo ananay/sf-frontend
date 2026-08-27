@@ -11,13 +11,14 @@ import type { AddressInput, ContactInput } from "./types";
 
 /** Optional text: trimmed, and blank becomes `null` (the API clears the field). */
 function optionalText(max: number, label: string) {
-  return z
-    .string()
-    .trim()
-    .max(max, `${label} must be ${max} characters or fewer`)
-    .transform((value) => value || null)
-    .nullable()
-    .default(null);
+  return z.preprocess(
+    (value) => value ?? "",
+    z
+      .string()
+      .trim()
+      .max(max, `${label} must be ${max} characters or fewer`)
+      .transform((value) => value || null),
+  ).default(null);
 }
 
 function requiredText(max: number, label: string) {

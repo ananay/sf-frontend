@@ -87,6 +87,33 @@ describe("contactInputSchema", () => {
     });
   });
 
+  it("normalizes nullable optional fields from stored addresses", () => {
+    const result = contactInputSchema.safeParse(
+      values({
+        addresses: [
+          {
+            type: "Work",
+            address: "1 Market St",
+            city: null,
+            state: null,
+            postal_code: null,
+            country: null,
+          },
+        ],
+      }),
+    );
+
+    expect(result.success).toBe(true);
+    expect(result.data?.addresses[0]).toEqual({
+      type: "Work",
+      address: "1 Market St",
+      city: null,
+      state: null,
+      postal_code: null,
+      country: null,
+    });
+  });
+
   it("rejects blank streets and more than ten addresses", () => {
     const blank = { type: "Home", address: "", city: "", state: "", postal_code: "", country: "" };
     expect(contactInputSchema.safeParse(values({ addresses: [blank] })).success).toBe(false);
