@@ -4,9 +4,21 @@ import type { ContactInput } from "./types";
 export const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
 export const PHOTO_ACCEPT = "image/jpeg,image/png,image/webp";
 export const MAX_PHOTO_DATA_URI_LENGTH =
-  4 * Math.ceil(MAX_PHOTO_BYTES / 3) + 32;
+  4 * Math.ceil(MAX_PHOTO_BYTES / 3) + "data:image/jpeg;base64,".length;
 const PHOTO_DATA_URI_PATTERN =
   /^data:image\/(?:jpeg|png|webp);base64,([A-Za-z0-9+/]+={0,2})$/;
+
+/** Check the decoded payload size rather than relying on encoded string length. */
+export function isPhotoWithinSizeLimit(value: string): boolean {
+  if (value === "") return true;
+  const match = PHOTO_DATA_URI_PATTERN.exec(value);
+  if (!match) return false;
+  try {
+    return atob(match[1]).length <= MAX_PHOTO_BYTES;
+  } catch {
+    return false;
+  }
+}
 
 /** Confirm the decoded bytes match the MIME type declared by the data URI. */
 function hasMatchingImageSignature(value: string): boolean {
@@ -94,6 +106,7 @@ export const contactInputSchema = z.object({
       (value) => value === "" || PHOTO_DATA_URI_PATTERN.test(value),
       "Choose a JPEG, PNG, or WebP image",
     )
+    .refine(isPhotoWithinSizeLimit, "Photo must be 2 MB or smaller")
     .refine(hasMatchingImageSignature, "Photo content does not match its image type")
     .transform((value) => value || null)
     .nullable()

@@ -41,6 +41,55 @@ describe("PhotoField", () => {
     );
   });
 
+  it("allows retrying the same file after a read error", async () => {
+    const originalFileReader = global.FileReader;
+
+    class FailingFileReader {
+      static instances: FailingFileReader[] = [];
+      result: string | ArrayBuffer | null = null;
+      onload: FileReader["onload"] = null;
+      onerror: FileReader["onerror"] = null;
+      abort = jest.fn();
+
+      constructor() {
+        FailingFileReader.instances.push(this);
+      }
+
+      readAsDataURL(): void {}
+
+      fail(): void {
+        this.onerror?.call(
+          this as unknown as FileReader,
+          new ProgressEvent("error") as ProgressEvent<FileReader>,
+        );
+      }
+    }
+
+    Object.defineProperty(global, "FileReader", {
+      configurable: true,
+      writable: true,
+      value: FailingFileReader,
+    });
+
+    try {
+      render(<PhotoField initialPhoto={null} />);
+      const input = screen.getByLabelText(/choose contact photo/i);
+      const file = new File(["photo"], "avatar.png", { type: "image/png" });
+      await userEvent.upload(input, file);
+      act(() => FailingFileReader.instances[0].fail());
+      expect(input).toHaveValue("");
+
+      await userEvent.upload(input, file);
+      expect(FailingFileReader.instances).toHaveLength(2);
+    } finally {
+      Object.defineProperty(global, "FileReader", {
+        configurable: true,
+        writable: true,
+        value: originalFileReader,
+      });
+    }
+  });
+
   it("ignores a stale file read after a newer selection", async () => {
     const originalFileReader = global.FileReader;
 

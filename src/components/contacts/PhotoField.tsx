@@ -6,8 +6,8 @@ import PhotoCropDialog from "@/components/contacts/PhotoCropDialog";
 import Button from "@/components/ui/Button";
 import {
   MAX_PHOTO_BYTES,
-  MAX_PHOTO_DATA_URI_LENGTH,
   PHOTO_ACCEPT,
+  isPhotoWithinSizeLimit,
 } from "@/lib/contacts/schema";
 
 interface PendingPhoto {
@@ -67,6 +67,7 @@ export default function PhotoField({ initialPhoto, error }: PhotoFieldProps) {
       if (readerRef.current === reader) {
         setClientError("The selected photo could not be read.");
         readerRef.current = null;
+        event.target.value = "";
       }
     };
     reader.readAsDataURL(file);
@@ -89,7 +90,7 @@ export default function PhotoField({ initialPhoto, error }: PhotoFieldProps) {
 
   /** Accept a rendered square crop if it remains within the API size limit. */
   function completeCrop(croppedPhoto: string): void {
-    if (croppedPhoto.length > MAX_PHOTO_DATA_URI_LENGTH) {
+    if (!isPhotoWithinSizeLimit(croppedPhoto)) {
       setClientError("Cropped photo must be 2 MB or smaller.");
       cancelCrop();
       return;

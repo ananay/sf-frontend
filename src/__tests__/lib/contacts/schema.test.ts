@@ -1,5 +1,6 @@
 import {
   CONTACT_FIELDS,
+  MAX_PHOTO_BYTES,
   contactInputSchema,
   formDataToValues,
   zodFieldErrors,
@@ -81,7 +82,17 @@ describe("contactInputSchema", () => {
     expect(
       contactInputSchema.safeParse(
         values({ photo: "data:image/png;base64,SGVsbG8=" }),
-      ).success,
+    ).success,
+    ).toBe(false);
+  });
+
+  it("rejects a photo whose decoded payload exceeds two megabytes", () => {
+    const oversizedPng = `data:image/png;base64,${btoa(
+      "\x89PNG\r\n\x1a\n" + "x".repeat(MAX_PHOTO_BYTES),
+    )}`;
+
+    expect(
+      contactInputSchema.safeParse(values({ photo: oversizedPng })).success,
     ).toBe(false);
   });
 });
