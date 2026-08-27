@@ -29,6 +29,7 @@ export interface Contact {
   job_title: string | null;
   addresses: Address[];
   notes: string | null;
+  photo: string | null;
   created_at: string;
   updated_at: string;
   full_name: string;

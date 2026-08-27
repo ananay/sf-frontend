@@ -31,6 +31,7 @@ export function makeContact(overrides: Partial<Contact> = {}): Contact {
       },
     ],
     notes: null,
+    photo: null,
     created_at: "2026-08-19T17:04:53.743932Z",
     updated_at: "2026-08-19T17:04:53.743936Z",
     full_name: `${first_name} ${last_name}`,

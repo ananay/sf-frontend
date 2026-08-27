@@ -1,6 +1,52 @@
 import { z } from "zod";
 import type { AddressInput, ContactInput } from "./types";
 
+export const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
+export const PHOTO_ACCEPT = "image/jpeg,image/png,image/webp";
+export const MAX_PHOTO_DATA_URI_LENGTH =
+  4 * Math.ceil(MAX_PHOTO_BYTES / 3) + "data:image/jpeg;base64,".length;
+const PHOTO_DATA_URI_PATTERN =
+  /^data:image\/(?:jpeg|png|webp);base64,([A-Za-z0-9+/]+={0,2})$/;
+
+/** Check the decoded payload size rather than relying on encoded string length. */
+export function isPhotoWithinSizeLimit(value: string): boolean {
+  if (value === "") return true;
+  const match = PHOTO_DATA_URI_PATTERN.exec(value);
+  if (!match) return false;
+  try {
+    return atob(match[1]).length <= MAX_PHOTO_BYTES;
+  } catch {
+    return false;
+  }
+}
+
+/** Confirm the decoded bytes match the MIME type declared by the data URI. */
+function hasMatchingImageSignature(value: string): boolean {
+  if (value === "") return true;
+  const match = PHOTO_DATA_URI_PATTERN.exec(value);
+  if (!match) return false;
+
+  try {
+    const bytes = Uint8Array.from(atob(match[1]), (character) =>
+      character.charCodeAt(0),
+    );
+    if (value.startsWith("data:image/png")) {
+      return [137, 80, 78, 71, 13, 10, 26, 10].every(
+        (byte, index) => bytes[index] === byte,
+      );
+    }
+    if (value.startsWith("data:image/jpeg")) {
+      return bytes[0] === 255 && bytes[1] === 216 && bytes[2] === 255;
+    }
+    return (
+      String.fromCharCode(...bytes.slice(0, 4)) === "RIFF" &&
+      String.fromCharCode(...bytes.slice(8, 12)) === "WEBP"
+    );
+  } catch {
+    return false;
+  }
+}
+
 /**
  * Client/server-shared validation for the contact form.
  *
@@ -57,6 +103,19 @@ export const contactInputSchema = z.object({
   notes: z
     .string()
     .trim()
+    .transform((value) => value || null)
+    .nullable()
+    .default(null),
+  photo: z
+    .string()
+    .trim()
+    .max(MAX_PHOTO_DATA_URI_LENGTH, "Photo must be 2 MB or smaller")
+    .refine(
+      (value) => value === "" || PHOTO_DATA_URI_PATTERN.test(value),
+      "Choose a JPEG, PNG, or WebP image",
+    )
+    .refine(isPhotoWithinSizeLimit, "Photo must be 2 MB or smaller")
+    .refine(hasMatchingImageSignature, "Photo content does not match its image type")
     .transform((value) => value || null)
     .nullable()
     .default(null),
@@ -196,5 +255,9 @@ export function formDataToValues(
   } catch {
     addresses = null;
   }
-  return { ...textValues, addresses } as ContactFormValues;
+  return {
+    ...textValues,
+    addresses,
+    photo: String(formData.get("photo") ?? ""),
+  } as ContactFormValues;
 }

@@ -5,8 +5,9 @@ import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { AlertCircle, Loader2 } from "lucide-react";
 import Field from "@/components/ui/Field";
-import Button, { buttonClasses } from "@/components/ui/Button";
 import AddressesField from "@/components/contacts/AddressesField";
+import PhotoField from "@/components/contacts/PhotoField";
+import Button, { buttonClasses } from "@/components/ui/Button";
 import { CONTACT_FIELD_GROUPS } from "@/lib/contacts/schema";
 import {
   EMPTY_FORM_STATE,
@@ -50,6 +51,11 @@ export default function ContactForm({
   cancelHref: string;
 }) {
   const [state, formAction] = useActionState(action, EMPTY_FORM_STATE);
+  const submittedPhoto = state.values?.photo;
+  const initialPhoto =
+    typeof submittedPhoto === "string" || submittedPhoto === null
+      ? submittedPhoto
+      : (contact?.photo ?? null);
 
   function valueFor(name: keyof ContactInput): string {
     const submitted = state.values?.[name];
@@ -73,6 +79,11 @@ export default function ContactForm({
           <span>{state.message}</span>
         </div>
       ) : null}
+
+      <PhotoField
+        initialPhoto={initialPhoto}
+        error={state.fieldErrors?.photo}
+      />
 
       {CONTACT_FIELD_GROUPS.map((group) => (
         <fieldset key={group.title} className="space-y-4">

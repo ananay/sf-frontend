@@ -1,5 +1,6 @@
 import {
   CONTACT_FIELDS,
+  MAX_PHOTO_BYTES,
   contactInputSchema,
   formDataToValues,
   zodFieldErrors,
@@ -15,6 +16,7 @@ function values(overrides: Record<string, unknown> = {}) {
     job_title: "",
     addresses: [],
     notes: "",
+    photo: "",
     ...overrides,
   };
 }
@@ -26,6 +28,7 @@ describe("contactInputSchema", () => {
     expect(parsed.email).toBe("ada@example.com");
     expect(parsed.phone).toBeNull();
     expect(parsed.notes).toBeNull();
+    expect(parsed.photo).toBeNull();
   });
 
   it("trims what the user typed", () => {
@@ -60,6 +63,32 @@ describe("contactInputSchema", () => {
     expect(zodFieldErrors(result.error!)).toEqual({
       first_name: "First name must be 100 characters or fewer",
     });
+  });
+
+  it("accepts supported photo data and rejects unsafe image types", () => {
+    const png = "data:image/png;base64,iVBORw0KGgo=";
+
+    expect(contactInputSchema.parse(values({ photo: png })).photo).toBe(png);
+    expect(
+      contactInputSchema.safeParse(
+        values({ photo: "data:image/svg+xml;base64,PHN2Zz4=" }),
+      ).success,
+    ).toBe(false);
+    expect(
+      contactInputSchema.safeParse(
+        values({ photo: "data:image/png;base64,SGVsbG8=" }),
+    ).success,
+    ).toBe(false);
+  });
+
+  it("rejects a photo whose decoded payload exceeds two megabytes", () => {
+    const oversizedPng = `data:image/png;base64,${btoa(
+      "\x89PNG\r\n\x1a\n" + "x".repeat(MAX_PHOTO_BYTES),
+    )}`;
+
+    expect(
+      contactInputSchema.safeParse(values({ photo: oversizedPng })).success,
+    ).toBe(false);
   });
 
   it("validates typed nested addresses", () => {
@@ -135,9 +164,10 @@ describe("formDataToValues", () => {
 
     expect(extracted.first_name).toBe("Grace");
     expect(extracted.last_name).toBe("");
+    expect(extracted.photo).toBe("");
     expect(extracted.addresses).toEqual([{ type: "Home", address: "1 Main St" }]);
     expect(Object.keys(extracted).sort()).toEqual(
-      [...CONTACT_FIELDS.map((field) => field.name), "addresses"].sort(),
+      [...CONTACT_FIELDS.map((field) => field.name), "addresses", "photo"].sort(),
     );
   });
 });
