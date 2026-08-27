@@ -49,12 +49,17 @@ export default function PhotoCropDialog({
   const dialogRef = useRef<HTMLDivElement>(null);
   const dragStartRef = useRef<DragStart | null>(null);
   const isActiveRef = useRef(true);
+  const onCancelRef = useRef(onCancel);
+
+  useEffect(() => {
+    onCancelRef.current = onCancel;
+  }, [onCancel]);
 
   /** Cancel pending output before closing the editor. */
   const cancelDialog = useCallback((): void => {
     isActiveRef.current = false;
-    onCancel();
-  }, [onCancel]);
+    onCancelRef.current();
+  }, []);
 
   useEffect(() => {
     const previousFocus = document.activeElement;

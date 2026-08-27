@@ -106,4 +106,72 @@ describe("PhotoCropDialog", () => {
       });
     }
   });
+
+  it("remains active when the parent supplies a new cancel callback", async () => {
+    const onComplete = jest.fn();
+    const firstCancel = jest.fn();
+    const secondCancel = jest.fn();
+    const { rerender } = render(
+      <PhotoCropDialog
+        mimeType="image/png"
+        source={SOURCE}
+        onCancel={firstCancel}
+        onComplete={onComplete}
+        onError={jest.fn()}
+      />,
+    );
+    loadPreview(1, 1);
+
+    rerender(
+      <PhotoCropDialog
+        mimeType="image/png"
+        source={SOURCE}
+        onCancel={secondCancel}
+        onComplete={onComplete}
+        onError={jest.fn()}
+      />,
+    );
+
+    const originalImage = global.Image;
+    const originalCreateElement = document.createElement.bind(document);
+    class LoadedImage {
+      naturalWidth = 1;
+      naturalHeight = 1;
+      onload: (() => void) | null = null;
+      onerror: (() => void) | null = null;
+
+      set src(_value: string) {
+        this.onload?.();
+      }
+    }
+    Object.defineProperty(global, "Image", {
+      configurable: true,
+      writable: true,
+      value: LoadedImage,
+    });
+    jest.spyOn(document, "createElement").mockImplementation((tagName) => {
+      if (tagName === "canvas") {
+        return {
+          width: 0,
+          height: 0,
+          getContext: () => ({ drawImage: jest.fn() }),
+          toDataURL: () => "data:image/png;base64,cropped",
+        } as unknown as HTMLCanvasElement;
+      }
+      return originalCreateElement(tagName);
+    });
+
+    try {
+      await userEvent.click(screen.getByRole("button", { name: /use crop/i }));
+      expect(onComplete).toHaveBeenCalledWith("data:image/png;base64,cropped");
+      expect(screen.getByRole("button", { name: /use crop/i })).toBeEnabled();
+    } finally {
+      jest.restoreAllMocks();
+      Object.defineProperty(global, "Image", {
+        configurable: true,
+        writable: true,
+        value: originalImage,
+      });
+    }
+  });
 });
