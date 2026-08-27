@@ -84,10 +84,11 @@ jobs:
 
       - name: Pull Vercel preview settings
         env:
+          VERCEL_GIT_BRANCH: ${{ github.head_ref }}
           VERCEL_TOKEN: ${{ secrets.VERCEL_TOKEN }}
         run: >-
           vercel pull --yes --environment=preview
-          --git-branch="${{ github.head_ref }}"
+          --git-branch="$VERCEL_GIT_BRANCH"
           --token="$VERCEL_TOKEN"
 
       - name: Build Vercel output
