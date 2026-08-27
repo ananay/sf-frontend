@@ -4,10 +4,11 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import { ChevronLeft, Pencil } from "lucide-react";
 import ContactAvatar from "@/components/contacts/ContactAvatar";
+import ContactAddresses from "@/components/contacts/ContactAddresses";
 import DeleteContactButton from "@/components/contacts/DeleteContactButton";
 import { buttonClasses } from "@/components/ui/Button";
 import { getContact } from "@/lib/contacts/api";
-import { addressLine, formatTimestamp, jobLine } from "@/lib/contacts/format";
+import { formatTimestamp, jobLine } from "@/lib/contacts/format";
 
 type PageProps = { params: Promise<{ id: string }> };
 
@@ -102,18 +103,7 @@ export default async function ContactDetailPage({ params }: PageProps) {
         <Row label="Company">{contact.company}</Row>
         <Row label="Job title">{contact.job_title}</Row>
         <Row label="Addresses">
-          {contact.addresses.length ? (
-            <ul className="space-y-3">
-              {contact.addresses.map((address) => (
-                <li key={address.id} className="flex items-start gap-3">
-                  <span className="mt-0.5 rounded-full border border-border bg-secondary px-2 py-0.5 font-mono text-[11px] text-muted-foreground">
-                    {address.type}
-                  </span>
-                  <span>{addressLine(address)}</span>
-                </li>
-              ))}
-            </ul>
-          ) : null}
+          <ContactAddresses addresses={contact.addresses} />
         </Row>
         <Row label="Notes">
           {contact.notes ? (
