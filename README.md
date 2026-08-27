@@ -1,6 +1,6 @@
 # sf-frontend
 
-Front end for the [Contacts API](http://127.0.0.1:8000/docs) — browse, search, sort,
+Front end for the [Contacts API](http://127.0.0.1:8000/docs): browse, search, sort,
 page through, create, edit, and delete contacts.
 
 Next.js 16 (App Router) · TypeScript · Tailwind CSS · Zod · Jest + Testing Library
@@ -25,50 +25,50 @@ Use these two screenshots as the smoke test. If `http://localhost:3000` looks
 like this and the badge reads `api ok`, the frontend, the API, and the database
 are all wired up correctly and you can start building.
 
-### `/contacts` — the list
+### `/contacts`: the list
 
 ![The contacts list page](docs/UI.png)
 
 The landing route (`/` redirects here). What to check, top to bottom:
 
-- **Header** — `SFContacts` wordmark, `Contacts` / `New contact` nav with the
+- **Header:** `SFContacts` wordmark, `Contacts` / `New contact` nav with the
   current route highlighted, and the theme toggle on the right (dark is the
   default; the sun icon switches to light).
-- **`3 contacts` + the badge** — the count comes from the API's `total`, and the
+- **`3 contacts` + the badge:** the count comes from the API's `total`, and the
   green-dotted `api ok · sqlite` pill is live `GET /health` output naming the
   backend's database. A red `api unreachable` here means the backend is down or
-  `API_BASE_URL` is wrong — everything below it will be empty.
-- **Toolbar** — search across name, email, company, and phone, plus a per-page
+  `API_BASE_URL` is wrong; everything below it will be empty.
+- **Toolbar:** search across name, email, company, and phone, plus a per-page
   selector. Both write to the URL, so the state survives a reload and is
   shareable.
-- **Table** — sortable `Name` and `Email` headers (the arrow shows the active
+- **Table:** sortable `Name` and `Email` headers (the arrow shows the active
   column and direction), an initials avatar per row, `Job title at Company` as
   the subtitle, and per-row pencil (edit) and trash (delete) actions.
-- **Footer row** — `Showing 1–3 of 3` with Previous/Next, both disabled on a
+- **Footer row:** `Showing 1–3 of 3` with Previous/Next, both disabled on a
   single page.
-- **Version stamp** — `web v0.1.0 (build 2 · 8ce2dc0)` at the bottom of every
+- **Version stamp:** `web v0.1.0 (build 2 · 8ce2dc0)` at the bottom of every
   page, so you always know which build you are looking at.
 
 The seed data above (Grace Hopper, Ada Lovelace, Alan Turing) is whatever your
-backend was seeded with — your names and IDs will differ, and an empty table
+backend was seeded with. Your names and IDs will differ, and an empty table
 just means an empty database, not a broken app.
 
-### `/contacts/[id]` — a single contact
+### `/contacts/[id]`: a single contact
 
 ![A single contact's detail page](docs/contact.png)
 
 Click a row to get here. It confirms the detail read path works end to end:
 
 - **`< All contacts`** back link to the list.
-- **Header** — avatar, name, and `Job title at Company`, with **Edit**
+- **Header:** avatar, name, and `Job title at Company`, with **Edit**
   (`/contacts/[id]/edit`) and a destructive **Delete** that asks before it acts.
-- **Field table** — email and phone rendered as `mailto:` / `tel:` links, then
-  company, job title, address, and notes. Empty optional fields show `—` rather
+- **Field table:** email and phone rendered as `mailto:` / `tel:` links, then
+  company, job title, address, and notes. Empty optional fields show a placeholder rather
   than collapsing, so the shape of the record stays readable.
-- **Metadata table** — `ID`, `Created`, and `Last updated` in UTC, monospaced.
+- **Metadata table:** `ID`, `Created`, and `Last updated` in UTC, monospaced.
 
 Hand-editing the URL to an ID that does not exist gives you the styled 404 page
-(`src/app/not-found.tsx`), not a stack trace — that is also worth a quick try.
+(`src/app/not-found.tsx`), not a stack trace. That is also worth a quick try.
 
 ## Scripts
 
@@ -82,7 +82,7 @@ Hand-editing the URL to an ID that does not exist gives you the styled 404 page
 | `npm test`                | Jest unit/component tests                            |
 | `npm run test:watch`      | Jest in watch mode                                   |
 | `npm run test:coverage`   | Jest with coverage (thresholds in `jest.config.ts`)  |
-| `npm run test:e2e`        | Playwright — starts the dev server itself            |
+| `npm run test:e2e`        | Playwright; starts the dev server itself             |
 | `npm run test:e2e:ui`     | Playwright UI mode                                   |
 | `npm run test:e2e:report` | Open the last HTML report                            |
 
@@ -91,7 +91,7 @@ Hand-editing the URL to an ID that does not exist gives you the styled 404 page
 | Route                | What it does                                                     |
 | -------------------- | ---------------------------------------------------------------- |
 | `/`                  | 308 to `/contacts` (a `redirects()` rule, not a page)             |
-| `/contacts`          | List: search, sort, paginate — all held in the URL                |
+| `/contacts`          | List: search, sort, paginate; all held in the URL                 |
 | `/contacts/new`      | Create form                                                       |
 | `/contacts/[id]`     | Detail view with edit/delete                                      |
 | `/contacts/[id]/edit`| Edit form (`PUT`, i.e. a full replacement)                        |
@@ -116,7 +116,7 @@ e2e/                      Playwright specs (run against the real API)
 - **Server-side only.** Reads happen in server components, writes in server
   actions (`src/app/contacts/actions.ts`). `API_BASE_URL` never reaches the
   browser, there is no CORS surface, and no loading waterfall on first paint.
-  That means the app needs a Node runtime — `output: "export"` is not supported.
+  That means the app needs a Node runtime; `output: "export"` is not supported.
 - **`src/lib/contacts/api.ts`** is the only module that knows the endpoint
   shapes. It mirrors `/openapi.json`: `GET /api/v1/contacts` (search, limit,
   offset, sort_by, order), `POST`, `GET|PUT|PATCH|DELETE /api/v1/contacts/{id}`,
@@ -131,18 +131,18 @@ e2e/                      Playwright specs (run against the real API)
 
 ## Conventions
 
-- **Forms** — one source of truth: `CONTACT_FIELD_GROUPS` in
+- **Forms:** one source of truth: `CONTACT_FIELD_GROUPS` in
   `src/lib/contacts/schema.ts` drives both the rendered fields and the Zod rules,
   which mirror the API's own limits. Submitting is a real form `action`, so it
   works before hydration; `useActionState` surfaces what comes back.
-- **Styling** — Tailwind against semantic CSS variables (`bg-background`,
+- **Styling:** Tailwind against semantic CSS variables (`bg-background`,
   `text-muted-foreground`, `border-hairline`, …) defined in `src/app/globals.css`.
   Dark is the default; light lives under `[data-theme="light"]`. Add colours as
   tokens there plus an entry in `tailwind.config.ts` rather than hard-coding hex
   values in components, so both themes stay in sync.
-- **Fonts** — Inter / Space Grotesk / JetBrains Mono are self-hosted under
+- **Fonts:** Inter / Space Grotesk / JetBrains Mono are self-hosted under
   `src/app/fonts/` via `next/font/local`, so builds never fetch Google Fonts.
-- **Version stamp** — `next.config.ts` injects `NEXT_PUBLIC_APP_VERSION`,
+- **Version stamp:** `next.config.ts` injects `NEXT_PUBLIC_APP_VERSION`,
   `NEXT_PUBLIC_BUILD_NUMBER` (CI `BUILD_NUMBER`, else git commit count), and
   `NEXT_PUBLIC_GIT_SHA`. `VersionFooter` renders them, so any deployed page shows
   exactly which build it is.
@@ -150,7 +150,7 @@ e2e/                      Playwright specs (run against the real API)
   `(list)` route group on purpose: a `loading.tsx` directly under `contacts/`
   would also wrap `[id]`, flush the shell early, and turn its `notFound()` 404
   into a 200.
-- **Tests** — HTTP is stubbed with MSW (`src/__tests__/mocks/`), never by mocking
+- **Tests:** HTTP is stubbed with MSW (`src/__tests__/mocks/`), never by mocking
   `fetch` directly. Query by role/label over test IDs. Three bits of
   `jest.config.ts`/`jest.setup.ts` exist purely to make this stack work under
   Jest and should not be removed casually: the `jest-fixed-jsdom` environment
@@ -164,7 +164,7 @@ e2e/                      Playwright specs (run against the real API)
 `e2e/` runs against a **real** backend: each test creates its own contact with a
 unique email and deletes it again. Playwright's default is three browsers in
 parallel with up to 8 workers; if your backend is a single-worker uvicorn on
-in-memory SQLite, that concurrency can wedge it — run `npm run test:e2e --
+in-memory SQLite, that concurrency can wedge it. Run `npm run test:e2e --
 --workers=2` (or `--project=chromium`) against a dev backend you don't mind
 restarting.
 
@@ -172,3 +172,20 @@ restarting.
 
 Standard Node server build: `npm run build && npm start`. Set `API_BASE_URL` in
 the server environment to wherever the Contacts API lives.
+
+Pull requests from this repository run `.github/workflows/ci.yml`. After linting,
+type checking, tests, and the production build pass, the workflow uses the Vercel CLI
+to create a Preview deployment. Pull requests from forks run CI but skip deployment so
+that credentials are never exposed.
+
+One-time setup:
+
+1. Run `vercel link` from this directory and choose or create the frontend project.
+2. Copy `orgId` and `projectId` from `.vercel/project.json` into GitHub Actions secrets
+   named `VERCEL_ORG_ID` and `VERCEL_PROJECT_ID`.
+3. Create a Vercel access token and save it as the `VERCEL_TOKEN` GitHub Actions secret.
+4. Add `API_BASE_URL` to the Vercel project's Preview environment so deployed server
+   components can reach the Contacts API.
+
+The workflow runs `vercel pull`, `vercel build`, and `vercel deploy --prebuilt`. The
+resulting preview URL is written to the GitHub Actions job summary.

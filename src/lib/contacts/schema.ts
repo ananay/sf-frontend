@@ -1,5 +1,5 @@
 import { z } from "zod";
-import type { ContactInput } from "./types";
+import type { AddressInput, ContactInput } from "./types";
 
 export const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
 export const PHOTO_ACCEPT = "image/jpeg,image/png,image/webp";
@@ -57,13 +57,14 @@ function hasMatchingImageSignature(value: string): boolean {
 
 /** Optional text: trimmed, and blank becomes `null` (the API clears the field). */
 function optionalText(max: number, label: string) {
-  return z
-    .string()
-    .trim()
-    .max(max, `${label} must be ${max} characters or fewer`)
-    .transform((value) => value || null)
-    .nullable()
-    .default(null);
+  return z.preprocess(
+    (value) => value ?? "",
+    z
+      .string()
+      .trim()
+      .max(max, `${label} must be ${max} characters or fewer`)
+      .transform((value) => value || null),
+  ).default(null);
 }
 
 function requiredText(max: number, label: string) {
@@ -87,11 +88,18 @@ export const contactInputSchema = z.object({
   phone: optionalText(40, "Phone"),
   company: optionalText(200, "Company"),
   job_title: optionalText(200, "Job title"),
-  address: optionalText(300, "Address"),
-  city: optionalText(120, "City"),
-  state: optionalText(120, "State"),
-  postal_code: optionalText(20, "Postal code"),
-  country: optionalText(120, "Country"),
+  addresses: z
+    .array(
+      z.object({
+        type: z.enum(["Home", "Work", "Other"]),
+        address: requiredText(300, "Street address"),
+        city: optionalText(120, "City"),
+        state: optionalText(120, "State"),
+        postal_code: optionalText(20, "Postal code"),
+        country: optionalText(120, "Country"),
+      }) satisfies z.ZodType<AddressInput, unknown>,
+    )
+    .max(10, "A contact can have at most 10 addresses"),
   notes: z
     .string()
     .trim()
@@ -134,7 +142,7 @@ export function zodFieldErrors(
 /* ------------------------------------------------------------------ */
 
 export interface ContactFieldSpec {
-  name: keyof ContactInput;
+  name: Exclude<keyof ContactInput, "addresses">;
   label: string;
   type?: "text" | "email" | "tel" | "textarea";
   required?: boolean;
@@ -212,48 +220,6 @@ export const CONTACT_FIELD_GROUPS: ContactFieldGroup[] = [
     ],
   },
   {
-    title: "Address",
-    description: "Optional postal details.",
-    fields: [
-      {
-        name: "address",
-        label: "Street address",
-        maxLength: 300,
-        placeholder: "1 Market St, Suite 400",
-        autoComplete: "street-address",
-        wide: true,
-      },
-      {
-        name: "city",
-        label: "City",
-        maxLength: 120,
-        placeholder: "San Francisco",
-        autoComplete: "address-level2",
-      },
-      {
-        name: "state",
-        label: "State / region",
-        maxLength: 120,
-        placeholder: "CA",
-        autoComplete: "address-level1",
-      },
-      {
-        name: "postal_code",
-        label: "Postal code",
-        maxLength: 20,
-        placeholder: "94105",
-        autoComplete: "postal-code",
-      },
-      {
-        name: "country",
-        label: "Country",
-        maxLength: 120,
-        placeholder: "USA",
-        autoComplete: "country-name",
-      },
-    ],
-  },
-  {
     title: "Notes",
     description: "Anything worth remembering. No length limit.",
     fields: [
@@ -276,15 +242,22 @@ export const CONTACT_FIELDS: ContactFieldSpec[] = CONTACT_FIELD_GROUPS.flatMap(
 /** Pull the contact fields out of a submitted form, as raw strings. */
 export function formDataToValues(
   formData: FormData,
-): Record<keyof ContactInput, string> {
+): ContactFormValues {
   const textValues = Object.fromEntries(
     CONTACT_FIELDS.map((field) => [
       field.name,
       String(formData.get(field.name) ?? ""),
     ]),
   );
+  let addresses: unknown;
+  try {
+    addresses = JSON.parse(String(formData.get("addresses") ?? "[]"));
+  } catch {
+    addresses = null;
+  }
   return {
     ...textValues,
+    addresses,
     photo: String(formData.get("photo") ?? ""),
-  } as Record<keyof ContactInput, string>;
+  } as ContactFormValues;
 }

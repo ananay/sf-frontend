@@ -5,8 +5,9 @@ import { useFormStatus } from "react-dom";
 import Link from "next/link";
 import { AlertCircle, Loader2 } from "lucide-react";
 import Field from "@/components/ui/Field";
-import Button, { buttonClasses } from "@/components/ui/Button";
+import AddressesField from "@/components/contacts/AddressesField";
 import PhotoField from "@/components/contacts/PhotoField";
+import Button, { buttonClasses } from "@/components/ui/Button";
 import { CONTACT_FIELD_GROUPS } from "@/lib/contacts/schema";
 import {
   EMPTY_FORM_STATE,
@@ -50,9 +51,17 @@ export default function ContactForm({
   cancelHref: string;
 }) {
   const [state, formAction] = useActionState(action, EMPTY_FORM_STATE);
+  const submittedPhoto = state.values?.photo;
+  const initialPhoto =
+    typeof submittedPhoto === "string" || submittedPhoto === null
+      ? submittedPhoto
+      : (contact?.photo ?? null);
 
   function valueFor(name: keyof ContactInput): string {
-    return state.values?.[name] ?? contact?.[name] ?? "";
+    const submitted = state.values?.[name];
+    if (typeof submitted === "string") return submitted;
+    const stored = contact?.[name];
+    return typeof stored === "string" ? stored : "";
   }
 
   return (
@@ -72,7 +81,7 @@ export default function ContactForm({
       ) : null}
 
       <PhotoField
-        initialPhoto={state.values?.photo ?? contact?.photo ?? null}
+        initialPhoto={initialPhoto}
         error={state.fieldErrors?.photo}
       />
 
@@ -101,6 +110,15 @@ export default function ContactForm({
           </div>
         </fieldset>
       ))}
+
+      <AddressesField
+        initialAddresses={
+          Array.isArray(state.values?.addresses)
+            ? state.values.addresses
+            : (contact?.addresses ?? [])
+        }
+        error={state.fieldErrors?.addresses}
+      />
 
       <div className="flex items-center gap-2 border-t border-hairline pt-4">
         <SubmitButton label={submitLabel} />
