@@ -32,8 +32,6 @@ are all wired up correctly and you can start building.
 
 ### `/contacts`: the list
 
-![The contacts list page](docs/UI.png)
-
 The landing route (`/` redirects here). What to check, top to bottom:
 
 - **Header:** `SFContacts` wordmark, `Contacts` / `New contact` nav with the
