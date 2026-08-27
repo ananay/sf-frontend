@@ -24,6 +24,7 @@ export interface Contact {
   first_name: string;
   last_name: string;
   email: string;
+  linkedin_url: string | null;
   phone: string | null;
   company: string | null;
   job_title: string | null;
@@ -36,10 +37,15 @@ export interface Contact {
 }
 
 /** Every editable field, i.e. `ContactCreate` / `ContactReplace`. */
-export type ContactInput = Omit<
+type EditableContact = Omit<
   Contact,
   "id" | "created_at" | "updated_at" | "full_name" | "addresses"
 > & { addresses: AddressInput[] };
+
+/** Mutation input requires LinkedIn even though legacy reads may return null. */
+export type ContactInput = Omit<EditableContact, "linkedin_url"> & {
+  linkedin_url: string;
+};
 
 /** `ContactPage` — one page of contacts plus the totals needed to paginate. */
 export interface ContactPage {

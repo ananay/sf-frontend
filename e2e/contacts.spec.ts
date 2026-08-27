@@ -11,12 +11,21 @@ function uniqueEmail(prefix: string): string {
 
 async function createContact(
   page: Page,
-  fields: { first: string; last: string; email: string; company?: string },
+  fields: {
+    first: string
+    last: string
+    email: string
+    linkedin?: string
+    company?: string
+  },
 ) {
   await page.goto('/contacts/new')
   await page.getByLabel('First name').fill(fields.first)
   await page.getByLabel('Last name').fill(fields.last)
   await page.getByLabel('Email', { exact: false }).first().fill(fields.email)
+  await page
+    .getByLabel('LinkedIn profile')
+    .fill(fields.linkedin ?? 'https://www.linkedin.com/in/williamhgates')
   if (fields.company) await page.getByLabel('Company').fill(fields.company)
   await page.getByRole('button', { name: 'Create contact' }).click()
 
@@ -87,6 +96,9 @@ test.describe('Contacts', () => {
     await page.getByLabel('First name').fill('Second')
     await page.getByLabel('Last name').fill(last)
     await page.getByLabel('Email', { exact: false }).first().fill(email.toUpperCase())
+    await page
+      .getByLabel('LinkedIn profile')
+      .fill('https://www.linkedin.com/in/williamhgates')
     await page.getByRole('button', { name: 'Create contact' }).click()
 
     await expect(page.getByText(/already/i).first()).toBeVisible()
@@ -105,6 +117,7 @@ test.describe('Contacts', () => {
     await expect(page.getByText('Please fix the highlighted fields.')).toBeVisible()
     await expect(page.getByText('Last name is required')).toBeVisible()
     await expect(page.getByText('Email is required')).toBeVisible()
+    await expect(page.getByText('LinkedIn URL is required')).toBeVisible()
   })
 
   test('sorting is a link and survives a reload', async ({ page }) => {
