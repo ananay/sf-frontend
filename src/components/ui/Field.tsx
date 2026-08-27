@@ -1,7 +1,7 @@
 import type { ContactFieldSpec } from "@/lib/contacts/schema";
 
 const CONTROL =
-  "w-full rounded-md border bg-input px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground/60 transition-colors focus:bg-input";
+  "glass-control w-full rounded-xl px-3 py-2.5 text-sm text-foreground placeholder:text-muted-foreground/60 transition-all focus:border-primary focus:bg-input/80";
 
 /**
  * One labelled form control, driven by the field metadata in

@@ -2,9 +2,9 @@
 
 import { useEffect, useRef, useState, useTransition } from "react";
 import { useRouter } from "next/navigation";
-import { Loader2, Search, X } from "lucide-react";
+import { ArrowDownAZ, Loader2, Search, X } from "lucide-react";
 import { contactsHref, type ContactListQuery } from "@/lib/contacts/query";
-import { PER_PAGE_OPTIONS } from "@/lib/contacts/types";
+import { PER_PAGE_OPTIONS, SORT_FIELDS, type SortField } from "@/lib/contacts/types";
 
 const DEBOUNCE_MS = 300;
 
@@ -51,7 +51,7 @@ export default function ContactsToolbar({ query }: { query: ContactListQuery }) 
   }
 
   return (
-    <div className="flex flex-wrap items-center gap-3">
+    <div className="glass-panel flex flex-wrap items-center gap-3 rounded-2xl p-2.5">
       <div className="relative min-w-[220px] flex-1">
         <Search
           className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
@@ -64,7 +64,7 @@ export default function ContactsToolbar({ query }: { query: ContactListQuery }) 
           onChange={(event) => onSearchChange(event.target.value)}
           placeholder="Search name, email, company, or phone…"
           aria-label="Search contacts"
-          className="h-9 w-full rounded-md border border-border bg-input pl-9 pr-9 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary"
+          className="glass-control h-10 w-full rounded-xl pl-9 pr-9 text-sm text-foreground placeholder:text-muted-foreground/70 focus:border-primary"
         />
         <span className="absolute right-2.5 top-1/2 -translate-y-1/2">
           {isPending ? (
@@ -86,6 +86,56 @@ export default function ContactsToolbar({ query }: { query: ContactListQuery }) 
       </div>
 
       <label className="flex items-center gap-2 text-[13px] text-muted-foreground">
+        <ArrowDownAZ className="h-4 w-4" aria-hidden="true" />
+        <span className="sr-only">Sort contacts by</span>
+        <select
+          value={query.sortBy}
+          aria-label="Sort contacts by"
+          onChange={(event) =>
+            startTransition(() => {
+              router.replace(
+                contactsHref(query, {
+                  sortBy: event.target.value as SortField,
+                  page: 1,
+                }),
+                { scroll: false },
+              );
+            })
+          }
+          className="glass-control h-10 rounded-xl px-2.5 text-sm text-foreground focus:border-primary"
+        >
+          {SORT_FIELDS.map((field) => (
+            <option key={field} value={field}>
+              {field.replaceAll("_", " ")}
+            </option>
+          ))}
+        </select>
+      </label>
+
+      <label className="flex items-center gap-2 text-[13px] text-muted-foreground">
+        <span className="sr-only">Sort direction</span>
+        <select
+          value={query.order}
+          aria-label="Sort direction"
+          onChange={(event) =>
+            startTransition(() => {
+              router.replace(
+                contactsHref(query, {
+                  order: event.target.value === "desc" ? "desc" : "asc",
+                  page: 1,
+                }),
+                { scroll: false },
+              );
+            })
+          }
+          className="glass-control h-10 rounded-xl px-2.5 text-sm text-foreground focus:border-primary"
+        >
+          <option value="asc">Ascending</option>
+          <option value="desc">Descending</option>
+        </select>
+      </label>
+
+      <label className="flex items-center gap-2 text-[13px] text-muted-foreground">
         Per page
         <select
           value={query.perPage}
@@ -101,7 +151,7 @@ export default function ContactsToolbar({ query }: { query: ContactListQuery }) 
               );
             })
           }
-          className="h-9 rounded-md border border-border bg-input px-2 text-sm text-foreground focus:border-primary"
+          className="glass-control h-10 rounded-xl px-2.5 text-sm text-foreground focus:border-primary"
         >
           {PER_PAGE_OPTIONS.map((option) => (
             <option key={option} value={option}>

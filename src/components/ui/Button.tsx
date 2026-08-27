@@ -4,13 +4,13 @@ export type ButtonVariant = "primary" | "secondary" | "ghost" | "danger";
 export type ButtonSize = "sm" | "md";
 
 const BASE =
-  "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-md font-medium transition-colors disabled:pointer-events-none disabled:opacity-50";
+  "inline-flex items-center justify-center gap-1.5 whitespace-nowrap rounded-xl font-medium shadow-sm transition-all duration-200 hover:-translate-y-0.5 active:translate-y-0 disabled:pointer-events-none disabled:opacity-50";
 
 const VARIANTS: Record<ButtonVariant, string> = {
-  primary: "bg-primary text-primary-foreground hover:bg-primary/90",
+  primary: "border border-white/15 bg-gradient-accent text-primary-foreground shadow-primary/20 hover:brightness-110",
   secondary:
-    "border border-border bg-secondary text-secondary-foreground hover:bg-secondary/70",
-  ghost: "text-muted-foreground hover:bg-secondary/60 hover:text-foreground",
+    "glass-control text-secondary-foreground hover:bg-white/10",
+  ghost: "text-muted-foreground shadow-none hover:bg-white/8 hover:text-foreground",
   danger:
     "bg-destructive text-destructive-foreground hover:bg-destructive/90",
 };

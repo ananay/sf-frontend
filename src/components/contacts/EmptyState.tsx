@@ -14,7 +14,7 @@ export default function EmptyState({
   const Icon = filtered ? SearchX : Users;
 
   return (
-    <div className="rounded-lg border border-dashed border-border bg-card/50 px-6 py-16 text-center">
+    <div className="glass-panel rounded-3xl border-dashed px-6 py-16 text-center">
       <Icon
         className="mx-auto h-8 w-8 text-muted-foreground"
         strokeWidth={1.5}

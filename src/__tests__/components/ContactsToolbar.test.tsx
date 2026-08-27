@@ -65,4 +65,24 @@ describe("ContactsToolbar", () => {
       scroll: false,
     });
   });
+
+  it("changes card sorting and resets to the first page", async () => {
+    render(<ContactsToolbar query={{ ...DEFAULT_LIST_QUERY, page: 3 }} />);
+
+    await userEvent.selectOptions(
+      screen.getByRole("combobox", { name: /sort contacts by/i }),
+      "company",
+    );
+    expect(replace).toHaveBeenCalledWith("/contacts?sort=company", {
+      scroll: false,
+    });
+
+    await userEvent.selectOptions(
+      screen.getByRole("combobox", { name: /sort direction/i }),
+      "desc",
+    );
+    expect(replace).toHaveBeenCalledWith("/contacts?order=desc", {
+      scroll: false,
+    });
+  });
 });

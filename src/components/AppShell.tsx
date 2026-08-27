@@ -3,6 +3,7 @@
 import { ReactNode } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { motion, useReducedMotion } from "motion/react";
 import ThemeToggle from "@/components/ThemeToggle";
 import VersionFooter from "@/components/VersionFooter";
 
@@ -33,15 +34,29 @@ function Wordmark() {
 
 export default function AppShell({ children }: { children: ReactNode }) {
   const pathname = usePathname();
+  const reduceMotion = useReducedMotion();
 
   // `trailingSlash: true` means the live pathname is "/contacts/", so normalise
   // before matching rather than comparing the raw string.
   const currentPath = pathname.replace(/\/+$/, "") || "/";
 
   return (
-    <div className="flex min-h-screen flex-col">
-      <header className="sticky top-0 z-40 border-b border-hairline bg-card/95 backdrop-blur">
-        <div className="mx-auto flex h-14 max-w-5xl items-center gap-6 px-4">
+    <div className="relative flex min-h-screen flex-col overflow-hidden">
+      <div className="pointer-events-none fixed inset-0 -z-10 overflow-hidden" aria-hidden="true">
+        <motion.div
+          className="absolute -left-24 top-20 h-80 w-80 rounded-full bg-cyan-400/10 blur-3xl"
+          animate={reduceMotion ? undefined : { x: [0, 80, 20], y: [0, 45, 110], scale: [1, 1.15, 0.95] }}
+          transition={{ duration: 20, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
+        />
+        <motion.div
+          className="absolute -right-28 top-8 h-96 w-96 rounded-full bg-violet-500/15 blur-3xl"
+          animate={reduceMotion ? undefined : { x: [0, -95, -30], y: [0, 120, 45], scale: [1, 0.9, 1.18] }}
+          transition={{ duration: 24, repeat: Infinity, repeatType: "mirror", ease: "easeInOut" }}
+        />
+      </div>
+
+      <header className="glass-panel sticky top-0 z-40 border-x-0 border-t-0 bg-card/45">
+        <div className="mx-auto flex h-16 max-w-6xl items-center gap-6 px-4 sm:px-6">
           <Link href="/contacts" className="flex items-center gap-2">
             <Wordmark />
           </Link>
@@ -55,10 +70,12 @@ export default function AppShell({ children }: { children: ReactNode }) {
                   key={link.href}
                   href={link.href}
                   aria-current={active ? "page" : undefined}
-                  className={`rounded-md px-2.5 py-1.5 transition-colors ${
+                  className={`rounded-full px-3 py-1.5 transition-all ${
+                    link.href === "/contacts/new" ? "hidden sm:inline-flex" : ""
+                  } ${
                     active
-                      ? "bg-secondary text-foreground"
-                      : "text-muted-foreground hover:bg-secondary/60 hover:text-foreground"
+                      ? "border border-white/10 bg-white/10 text-foreground shadow-inner"
+                      : "text-muted-foreground hover:bg-white/7 hover:text-foreground"
                   }`}
                 >
                   {link.label}
@@ -73,7 +90,15 @@ export default function AppShell({ children }: { children: ReactNode }) {
         </div>
       </header>
 
-      <main className="flex-1">{children}</main>
+      <motion.main
+        key={currentPath}
+        className="relative flex-1"
+        initial={reduceMotion ? false : { opacity: 0, y: 8 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.35, ease: [0.22, 1, 0.36, 1] }}
+      >
+        {children}
+      </motion.main>
 
       <VersionFooter />
     </div>
