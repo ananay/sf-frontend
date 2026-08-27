@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import type { ReactNode } from "react";
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { ChevronLeft, Pencil } from "lucide-react";
+import { ChevronLeft, ExternalLink, Pencil } from "lucide-react";
 import ContactAvatar from "@/components/contacts/ContactAvatar";
 import ContactAddresses from "@/components/contacts/ContactAddresses";
 import DeleteContactButton from "@/components/contacts/DeleteContactButton";
@@ -92,6 +92,19 @@ export default async function ContactDetailPage({ params }: PageProps) {
           <a href={`mailto:${contact.email}`} className="text-primary hover:underline">
             {contact.email}
           </a>
+        </Row>
+        <Row label="LinkedIn">
+          {contact.linkedin_url ? (
+            <a
+              href={contact.linkedin_url}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center gap-1.5 text-primary hover:underline"
+            >
+              <ExternalLink className="h-4 w-4" aria-hidden="true" />
+              View profile
+            </a>
+          ) : null}
         </Row>
         <Row label="Phone">
           {contact.phone ? (

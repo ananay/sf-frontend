@@ -21,6 +21,7 @@ const INPUT: ContactInput = {
   first_name: "Grace",
   last_name: "Hopper",
   email: "grace@example.com",
+  linkedin_url: "https://www.linkedin.com/in/grace-hopper",
   phone: null,
   company: null,
   job_title: null,
@@ -149,6 +150,7 @@ describe("error translation", () => {
           { loc: ["body", "email"], msg: "value is not a valid email address" },
           { loc: ["body", "first_name"], msg: "String should have at least 1 character" },
           { loc: ["body", "addresses", 0, "address"], msg: "Street address is required" },
+          { loc: ["body", "linkedin_url"], msg: "LinkedIn profile was not found" },
         ],
       }),
     );
@@ -157,6 +159,7 @@ describe("error translation", () => {
       email: "value is not a valid email address",
       first_name: "String should have at least 1 character",
       addresses: "Street address is required",
+      linkedin_url: "LinkedIn profile was not found",
     });
   });
 

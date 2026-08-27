@@ -75,6 +75,73 @@ function requiredText(max: number, label: string) {
     .max(max, `${label} must be ${max} characters or fewer`);
 }
 
+const LINKEDIN_URL_MAX_LENGTH = 500;
+const LINKEDIN_PROFILE_PATH =
+  /^\/in\/([A-Za-z0-9][A-Za-z0-9-]{1,98}[A-Za-z0-9])\/?$/;
+
+/** Validate and canonicalize a public LinkedIn profile URL. */
+export function normalizeLinkedInUrl(value: string): string {
+  const candidate = value.trim();
+  if (!candidate) throw new Error("LinkedIn URL is required");
+  if (candidate.length > LINKEDIN_URL_MAX_LENGTH) {
+    throw new Error(
+      `LinkedIn URL must be ${LINKEDIN_URL_MAX_LENGTH} characters or fewer`,
+    );
+  }
+  if (/\s/.test(candidate) || candidate.includes("\\")) {
+    throw new Error("LinkedIn URL cannot contain whitespace or backslashes");
+  }
+
+  let url: URL;
+  try {
+    url = new URL(candidate);
+  } catch {
+    throw new Error("Enter a valid LinkedIn profile URL");
+  }
+
+  if (url.protocol !== "https:") {
+    throw new Error("LinkedIn URL must use HTTPS");
+  }
+  if (!["linkedin.com", "www.linkedin.com"].includes(url.hostname.toLowerCase())) {
+    throw new Error("Enter a linkedin.com profile URL");
+  }
+  const afterScheme = candidate.slice(candidate.indexOf("//") + 2);
+  const authorityEnd = afterScheme.search(/[/?#]/);
+  const authority =
+    authorityEnd === -1 ? afterScheme : afterScheme.slice(0, authorityEnd);
+  const hasExplicitPort = /:\d+$/.test(authority);
+  if (url.username || url.password || url.port || hasExplicitPort) {
+    throw new Error(
+      "Enter a standard LinkedIn profile URL without credentials or a port",
+    );
+  }
+
+  const remainder = authorityEnd === -1 ? "" : afterScheme.slice(authorityEnd);
+  const rawPath = remainder.startsWith("/") ? remainder.split(/[?#]/)[0] : "";
+  const match = LINKEDIN_PROFILE_PATH.exec(rawPath);
+  if (!match) {
+    throw new Error(
+      "LinkedIn URL must look like https://www.linkedin.com/in/profile-name",
+    );
+  }
+  return `https://www.linkedin.com/in/${match[1].toLowerCase()}`;
+}
+
+const linkedinUrlSchema = z.string().transform((value, context) => {
+  try {
+    return normalizeLinkedInUrl(value);
+  } catch (error) {
+    context.addIssue({
+      code: "custom",
+      message:
+        error instanceof Error
+          ? error.message
+          : "Enter a valid LinkedIn profile URL",
+    });
+    return z.NEVER;
+  }
+});
+
 export const contactInputSchema = z.object({
   first_name: requiredText(100, "First name"),
   last_name: requiredText(100, "Last name"),
@@ -85,6 +152,7 @@ export const contactInputSchema = z.object({
     .max(320, "Email must be 320 characters or fewer")
     .pipe(z.email("Enter a valid email address"))
     .transform((value) => value.toLowerCase()),
+  linkedin_url: linkedinUrlSchema,
   phone: optionalText(40, "Phone"),
   company: optionalText(200, "Company"),
   job_title: optionalText(200, "Job title"),
@@ -144,7 +212,7 @@ export function zodFieldErrors(
 export interface ContactFieldSpec {
   name: Exclude<keyof ContactInput, "addresses">;
   label: string;
-  type?: "text" | "email" | "tel" | "textarea";
+  type?: "text" | "email" | "tel" | "url" | "textarea";
   required?: boolean;
   maxLength: number;
   placeholder?: string;
@@ -162,7 +230,7 @@ export interface ContactFieldGroup {
 export const CONTACT_FIELD_GROUPS: ContactFieldGroup[] = [
   {
     title: "Identity",
-    description: "First name, last name, and email are required.",
+    description: "Names, email, and LinkedIn profile are required.",
     fields: [
       {
         name: "first_name",
@@ -188,6 +256,16 @@ export const CONTACT_FIELD_GROUPS: ContactFieldGroup[] = [
         maxLength: 320,
         placeholder: "ada@example.com",
         autoComplete: "email",
+      },
+      {
+        name: "linkedin_url",
+        label: "LinkedIn profile",
+        type: "url",
+        required: true,
+        maxLength: LINKEDIN_URL_MAX_LENGTH,
+        placeholder: "https://www.linkedin.com/in/ada-lovelace",
+        autoComplete: "url",
+        wide: true,
       },
       {
         name: "phone",

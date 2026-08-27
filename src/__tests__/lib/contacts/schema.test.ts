@@ -3,6 +3,7 @@ import {
   MAX_PHOTO_BYTES,
   contactInputSchema,
   formDataToValues,
+  normalizeLinkedInUrl,
   zodFieldErrors,
 } from "@/lib/contacts/schema";
 
@@ -11,6 +12,7 @@ function values(overrides: Record<string, unknown> = {}) {
     first_name: "Ada",
     last_name: "Lovelace",
     email: "Ada@Example.com",
+    linkedin_url: "https://www.linkedin.com/in/ada-lovelace",
     phone: "",
     company: "",
     job_title: "",
@@ -37,9 +39,9 @@ describe("contactInputSchema", () => {
     );
   });
 
-  it("requires the three fields the API requires", () => {
+  it("requires every mandatory identity field", () => {
     const result = contactInputSchema.safeParse(
-      values({ first_name: " ", last_name: "", email: "" }),
+      values({ first_name: " ", last_name: "", email: "", linkedin_url: "" }),
     );
 
     expect(result.success).toBe(false);
@@ -47,7 +49,36 @@ describe("contactInputSchema", () => {
       first_name: "First name is required",
       last_name: "Last name is required",
       email: "Email is required",
+      linkedin_url: "LinkedIn URL is required",
     });
+  });
+
+  it("normalizes a LinkedIn profile URL", () => {
+    expect(
+      normalizeLinkedInUrl(
+        " https://linkedin.com/in/Ada-Lovelace/?trk=contacts#about ",
+      ),
+    ).toBe("https://www.linkedin.com/in/ada-lovelace");
+  });
+
+  it.each([
+    "http://www.linkedin.com/in/ada-lovelace",
+    "https://example.com/in/ada-lovelace",
+    "https://linkedin.com.evil.example/in/ada-lovelace",
+    "https://user:password@linkedin.com/in/ada-lovelace",
+    "https://linkedin.com:443/in/ada-lovelace",
+    "https://www.linkedin.com/company/openai",
+    "https://www.linkedin.com/in/a",
+    `https://www.linkedin.com/in/${"a".repeat(101)}`,
+    "https://www.linkedin.com/in/name/extra",
+    "https://www.linkedin.com/in/name%2Fextra",
+    "https://www.linkedin.com/in/ada lovelace",
+    "https://linkedin.com/foo/../in/ada-lovelace",
+    "https://linkedin.com\\@evil.example/in/ada-lovelace",
+    "https://linkedin.com?next=/in/ada-lovelace",
+  ])("rejects invalid LinkedIn URL %s", (linkedin_url) => {
+    const result = contactInputSchema.safeParse(values({ linkedin_url }));
+    expect(zodFieldErrors(result.error!).linkedin_url).toBeTruthy();
   });
 
   it("rejects a malformed email", () => {

@@ -64,9 +64,10 @@ Click a row to get here. It confirms the detail read path works end to end:
 - **`< All contacts`** back link to the list.
 - **Header:** avatar, name, and `Job title at Company`, with **Edit**
   (`/contacts/[id]/edit`) and a destructive **Delete** that asks before it acts.
-- **Field table:** email and phone rendered as `mailto:` / `tel:` links, then
-  company, job title, address, and notes. Empty optional fields show a placeholder rather
-  than collapsing, so the shape of the record stays readable.
+- **Field table:** email and phone rendered as `mailto:` / `tel:` links, a safe
+  external link to the validated LinkedIn profile, then company, job title,
+  address, and notes. Empty optional fields show a placeholder rather than
+  collapsing, so the shape of the record stays readable.
 - **Metadata table:** `ID`, `Created`, and `Last updated` in UTC, monospaced.
 
 Hand-editing the URL to an ID that does not exist gives you the styled 404 page
@@ -135,8 +136,10 @@ e2e/                      Playwright specs (run against the real API)
 
 - **Forms:** one source of truth: `CONTACT_FIELD_GROUPS` in
   `src/lib/contacts/schema.ts` drives both the rendered fields and the Zod rules,
-  which mirror the API's own limits. Submitting is a real form `action`, so it
-  works before hydration; `useActionState` surfaces what comes back.
+  which mirror the API's own limits. LinkedIn profile URLs are required,
+  canonicalized, and checked locally before the API performs its authoritative
+  availability check. Submitting is a real form `action`, so it works before
+  hydration; `useActionState` surfaces what comes back.
 - **Styling:** Tailwind against semantic CSS variables (`bg-background`,
   `text-muted-foreground`, `border-hairline`, …) defined in `src/app/globals.css`.
   Dark is the default; light lives under `[data-theme="light"]`. Add colours as

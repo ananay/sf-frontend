@@ -23,6 +23,11 @@ describe("ContactForm", () => {
     expect(screen.getByLabelText(/first name/i)).toBeRequired();
     expect(screen.getByLabelText(/last name/i)).toBeRequired();
     expect(screen.getByLabelText(/^email/i)).toBeRequired();
+    expect(screen.getByLabelText(/linkedin profile/i)).toBeRequired();
+    expect(screen.getByLabelText(/linkedin profile/i)).toHaveAttribute(
+      "type",
+      "url",
+    );
     expect(screen.getByLabelText(/phone/i)).not.toBeRequired();
     expect(screen.getByLabelText(/notes/i).tagName).toBe("TEXTAREA");
   });
@@ -33,6 +38,9 @@ describe("ContactForm", () => {
     expect(screen.getByLabelText(/first name/i)).toHaveValue("Ada");
     expect(screen.getByLabelText(/^email/i)).toHaveValue("ada@example.com");
     expect(screen.getByLabelText(/street address/i)).toHaveValue("1 Market St");
+    expect(screen.getByLabelText(/linkedin profile/i)).toHaveValue(
+      "https://www.linkedin.com/in/ada-lovelace",
+    );
   });
 
   it("submits the entered values to the action", async () => {
@@ -44,6 +52,10 @@ describe("ContactForm", () => {
     await userEvent.type(screen.getByLabelText(/first name/i), "Grace");
     await userEvent.type(screen.getByLabelText(/last name/i), "Hopper");
     await userEvent.type(screen.getByLabelText(/^email/i), "grace@example.com");
+    await userEvent.type(
+      screen.getByLabelText(/linkedin profile/i),
+      "https://www.linkedin.com/in/grace-hopper",
+    );
     await userEvent.click(screen.getByRole("button", { name: /create contact/i }));
 
     await waitFor(() => expect(action).toHaveBeenCalled());
@@ -52,6 +64,9 @@ describe("ContactForm", () => {
     expect(formData.get("first_name")).toBe("Grace");
     expect(formData.get("email")).toBe("grace@example.com");
     expect(formData.get("addresses")).toBe("[]");
+    expect(formData.get("linkedin_url")).toBe(
+      "https://www.linkedin.com/in/grace-hopper",
+    );
   });
 
   it("shows the summary and the per-field errors the action returns", async () => {
