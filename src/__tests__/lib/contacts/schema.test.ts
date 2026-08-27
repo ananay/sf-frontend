@@ -5,7 +5,7 @@ import {
   zodFieldErrors,
 } from "@/lib/contacts/schema";
 
-function values(overrides: Record<string, string> = {}) {
+function values(overrides: Record<string, unknown> = {}) {
   return {
     first_name: "Ada",
     last_name: "Lovelace",
@@ -13,11 +13,7 @@ function values(overrides: Record<string, string> = {}) {
     phone: "",
     company: "",
     job_title: "",
-    address: "",
-    city: "",
-    state: "",
-    postal_code: "",
-    country: "",
+    addresses: [],
     notes: "",
     ...overrides,
   };
@@ -58,13 +54,45 @@ describe("contactInputSchema", () => {
 
   it("enforces the API's length limits", () => {
     const result = contactInputSchema.safeParse(
-      values({ first_name: "a".repeat(101), postal_code: "9".repeat(21) }),
+      values({ first_name: "a".repeat(101) }),
     );
 
     expect(zodFieldErrors(result.error!)).toEqual({
       first_name: "First name must be 100 characters or fewer",
-      postal_code: "Postal code must be 20 characters or fewer",
     });
+  });
+
+  it("validates typed nested addresses", () => {
+    const result = contactInputSchema.safeParse(
+      values({
+        addresses: [
+          {
+            type: "Home",
+            address: "  1 Main St  ",
+            city: "  London ",
+            state: "",
+            postal_code: "",
+            country: "UK",
+          },
+        ],
+      }),
+    );
+
+    expect(result.success).toBe(true);
+    expect(result.data?.addresses[0]).toMatchObject({
+      type: "Home",
+      address: "1 Main St",
+      city: "London",
+      state: null,
+    });
+  });
+
+  it("rejects blank streets and more than ten addresses", () => {
+    const blank = { type: "Home", address: "", city: "", state: "", postal_code: "", country: "" };
+    expect(contactInputSchema.safeParse(values({ addresses: [blank] })).success).toBe(false);
+    expect(
+      contactInputSchema.safeParse(values({ addresses: Array.from({ length: 11 }, () => ({ ...blank, address: "1 Main St" })) })).success,
+    ).toBe(false);
   });
 });
 
@@ -74,13 +102,15 @@ describe("formDataToValues", () => {
     formData.set("first_name", "Grace");
     formData.set("email", "grace@example.com");
     formData.set("ignored", "nope");
+    formData.set("addresses", JSON.stringify([{ type: "Home", address: "1 Main St" }]));
 
     const extracted = formDataToValues(formData);
 
     expect(extracted.first_name).toBe("Grace");
     expect(extracted.last_name).toBe("");
+    expect(extracted.addresses).toEqual([{ type: "Home", address: "1 Main St" }]);
     expect(Object.keys(extracted).sort()).toEqual(
-      CONTACT_FIELDS.map((field) => field.name).sort(),
+      [...CONTACT_FIELDS.map((field) => field.name), "addresses"].sort(),
     );
   });
 });

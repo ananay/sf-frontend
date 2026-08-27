@@ -6,6 +6,7 @@ import Link from "next/link";
 import { AlertCircle, Loader2 } from "lucide-react";
 import Field from "@/components/ui/Field";
 import Button, { buttonClasses } from "@/components/ui/Button";
+import AddressesField from "@/components/contacts/AddressesField";
 import { CONTACT_FIELD_GROUPS } from "@/lib/contacts/schema";
 import {
   EMPTY_FORM_STATE,
@@ -51,7 +52,10 @@ export default function ContactForm({
   const [state, formAction] = useActionState(action, EMPTY_FORM_STATE);
 
   function valueFor(name: keyof ContactInput): string {
-    return state.values?.[name] ?? contact?.[name] ?? "";
+    const submitted = state.values?.[name];
+    if (typeof submitted === "string") return submitted;
+    const stored = contact?.[name];
+    return typeof stored === "string" ? stored : "";
   }
 
   return (
@@ -95,6 +99,15 @@ export default function ContactForm({
           </div>
         </fieldset>
       ))}
+
+      <AddressesField
+        initialAddresses={
+          Array.isArray(state.values?.addresses)
+            ? state.values.addresses
+            : (contact?.addresses ?? [])
+        }
+        error={state.fieldErrors?.addresses}
+      />
 
       <div className="flex items-center gap-2 border-t border-hairline pt-4">
         <SubmitButton label={submitLabel} />
