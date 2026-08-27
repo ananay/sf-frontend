@@ -2,6 +2,9 @@
 
 **Live app:** [sf-frontend-kohl.vercel.app](https://sf-frontend-kohl.vercel.app)
 
+<img width="1247" height="930" alt="image" src="https://github.com/user-attachments/assets/9bbab52a-6301-4654-88ba-8a46e720e285" />
+
+
 Front end for the [Contacts API](http://127.0.0.1:8000/docs): browse, search, sort,
 page through, create, edit, and delete contacts.
 
@@ -57,7 +60,8 @@ just means an empty database, not a broken app.
 
 ### `/contacts/[id]`: a single contact
 
-![A single contact's detail page](docs/contact.png)
+<img width="1199" height="934" alt="image" src="https://github.com/user-attachments/assets/bd1e7b60-d05d-402c-9014-9b2eabb727ff" />
+
 
 Click a row to get here. It confirms the detail read path works end to end:
 
