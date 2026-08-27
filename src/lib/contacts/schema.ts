@@ -3,7 +3,8 @@ import type { ContactInput } from "./types";
 
 export const MAX_PHOTO_BYTES = 2 * 1024 * 1024;
 export const PHOTO_ACCEPT = "image/jpeg,image/png,image/webp";
-const MAX_PHOTO_DATA_URI_LENGTH = 4 * Math.ceil(MAX_PHOTO_BYTES / 3) + 32;
+export const MAX_PHOTO_DATA_URI_LENGTH =
+  4 * Math.ceil(MAX_PHOTO_BYTES / 3) + 32;
 const PHOTO_DATA_URI_PATTERN =
   /^data:image\/(?:jpeg|png|webp);base64,([A-Za-z0-9+/]+={0,2})$/;
 

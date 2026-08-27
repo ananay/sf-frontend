@@ -1,4 +1,4 @@
-import { render, screen, waitFor } from "@testing-library/react";
+import { act, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import PhotoField from "@/components/contacts/PhotoField";
 import { MAX_PHOTO_BYTES } from "@/lib/contacts/schema";
@@ -80,15 +80,19 @@ describe("PhotoField", () => {
 
       const [firstReader, secondReader] = DeferredFileReader.instances;
       expect(firstReader.abort).toHaveBeenCalled();
-      firstReader.complete("data:image/png;base64,Zmlyc3Q=");
+      act(() => firstReader.complete("data:image/png;base64,Zmlyc3Q="));
       expect(container.querySelector('input[name="photo"]')).toHaveValue("");
+      expect(screen.queryByRole("dialog", { name: /crop photo/i })).not.toBeInTheDocument();
 
-      secondReader.complete("data:image/png;base64,c2Vjb25k");
+      act(() => secondReader.complete("data:image/png;base64,c2Vjb25k"));
       await waitFor(() =>
-        expect(container.querySelector('input[name="photo"]')).toHaveValue(
-          "data:image/png;base64,c2Vjb25k",
-        ),
+        expect(screen.getByRole("dialog", { name: /crop photo/i })).toBeInTheDocument(),
       );
+      expect(screen.getByRole("presentation", { hidden: true })).toHaveAttribute(
+        "src",
+        "data:image/png;base64,c2Vjb25k",
+      );
+      expect(container.querySelector('input[name="photo"]')).toHaveValue("");
     } finally {
       Object.defineProperty(global, "FileReader", {
         configurable: true,

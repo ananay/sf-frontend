@@ -2,8 +2,18 @@
 
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { ImagePlus, Trash2 } from "lucide-react";
+import PhotoCropDialog from "@/components/contacts/PhotoCropDialog";
 import Button from "@/components/ui/Button";
-import { MAX_PHOTO_BYTES, PHOTO_ACCEPT } from "@/lib/contacts/schema";
+import {
+  MAX_PHOTO_BYTES,
+  MAX_PHOTO_DATA_URI_LENGTH,
+  PHOTO_ACCEPT,
+} from "@/lib/contacts/schema";
+
+interface PendingPhoto {
+  mimeType: string;
+  source: string;
+}
 
 interface PhotoFieldProps {
   initialPhoto: string | null;
@@ -13,6 +23,7 @@ interface PhotoFieldProps {
 /** Image picker that submits a validated data URI through the server action. */
 export default function PhotoField({ initialPhoto, error }: PhotoFieldProps) {
   const [photo, setPhoto] = useState(initialPhoto);
+  const [pendingPhoto, setPendingPhoto] = useState<PendingPhoto | null>(null);
   const [clientError, setClientError] = useState<string>();
   const inputRef = useRef<HTMLInputElement>(null);
   const readerRef = useRef<FileReader | null>(null);
@@ -25,6 +36,7 @@ export default function PhotoField({ initialPhoto, error }: PhotoFieldProps) {
     [],
   );
 
+  /** Validate and read a selected image before opening the crop editor. */
   function choosePhoto(event: ChangeEvent<HTMLInputElement>): void {
     readerRef.current?.abort();
     readerRef.current = null;
@@ -46,7 +58,7 @@ export default function PhotoField({ initialPhoto, error }: PhotoFieldProps) {
     readerRef.current = reader;
     reader.onload = () => {
       if (readerRef.current === reader && typeof reader.result === "string") {
-        setPhoto(reader.result);
+        setPendingPhoto({ mimeType: file.type, source: reader.result });
         setClientError(undefined);
         readerRef.current = null;
       }
@@ -60,10 +72,30 @@ export default function PhotoField({ initialPhoto, error }: PhotoFieldProps) {
     reader.readAsDataURL(file);
   }
 
+  /** Clear the current photo and any in-progress file read. */
   function removePhoto(): void {
     readerRef.current?.abort();
     readerRef.current = null;
     setPhoto(null);
+    setClientError(undefined);
+    if (inputRef.current) inputRef.current.value = "";
+  }
+
+  /** Discard the selected file without changing the saved preview. */
+  function cancelCrop(): void {
+    setPendingPhoto(null);
+    if (inputRef.current) inputRef.current.value = "";
+  }
+
+  /** Accept a rendered square crop if it remains within the API size limit. */
+  function completeCrop(croppedPhoto: string): void {
+    if (croppedPhoto.length > MAX_PHOTO_DATA_URI_LENGTH) {
+      setClientError("Cropped photo must be 2 MB or smaller.");
+      cancelCrop();
+      return;
+    }
+    setPhoto(croppedPhoto);
+    setPendingPhoto(null);
     setClientError(undefined);
     if (inputRef.current) inputRef.current.value = "";
   }
@@ -121,6 +153,18 @@ export default function PhotoField({ initialPhoto, error }: PhotoFieldProps) {
         <p id="photo-error" role="alert" className="text-[13px] text-destructive">
           {message}
         </p>
+      ) : null}
+      {pendingPhoto ? (
+        <PhotoCropDialog
+          source={pendingPhoto.source}
+          mimeType={pendingPhoto.mimeType}
+          onCancel={cancelCrop}
+          onComplete={completeCrop}
+          onError={(cropError) => {
+            setClientError(cropError);
+            cancelCrop();
+          }}
+        />
       ) : null}
     </fieldset>
   );
