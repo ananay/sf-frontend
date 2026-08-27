@@ -47,32 +47,34 @@ export default function ContactsGrid({ contacts }: { contacts: Contact[] }) {
             whileHover={reduceMotion ? undefined : { y: -6, scale: 1.012 }}
             whileTap={reduceMotion ? undefined : { scale: 0.992 }}
             transition={{ type: "spring", stiffness: 320, damping: 24 }}
-            className="glass-card group relative isolate overflow-hidden rounded-3xl p-5"
+            className="glass-card group relative isolate cursor-pointer overflow-hidden rounded-3xl p-5"
           >
+            <Link
+              href={`/contacts/${contact.id}`}
+              aria-label={`Open ${contact.full_name}`}
+              className="absolute inset-0 z-0 rounded-3xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-primary"
+            />
             <div
               className="pointer-events-none absolute -right-16 -top-20 h-40 w-40 rounded-full bg-primary/15 blur-3xl transition-opacity duration-500 group-hover:opacity-100"
               aria-hidden="true"
             />
 
-            <div className="relative flex items-start gap-3.5">
+            <div className="pointer-events-none relative z-10 flex items-start gap-3.5">
               <ContactAvatar contact={contact} size="lg" />
               <div className="min-w-0 flex-1 pt-0.5">
-                <Link
-                  href={`/contacts/${contact.id}`}
-                  className="block truncate font-display text-lg font-semibold tracking-tight text-foreground transition-colors hover:text-primary"
-                >
+                <span className="block truncate font-display text-lg font-semibold tracking-tight text-foreground transition-colors group-hover:text-primary">
                   {contact.full_name}
-                </Link>
+                </span>
                 <p className="mt-0.5 truncate text-[13px] text-muted-foreground">
                   {subtitle ?? "Personal contact"}
                 </p>
               </div>
             </div>
 
-            <div className="relative mt-5 space-y-2.5 text-[13px]">
+            <div className="pointer-events-none relative z-10 mt-5 space-y-2.5 text-[13px]">
               <a
                 href={`mailto:${contact.email}`}
-                className="flex min-w-0 items-center gap-2.5 text-muted-foreground transition-colors hover:text-primary"
+                className="pointer-events-auto flex min-w-0 items-center gap-2.5 text-muted-foreground transition-colors hover:text-primary"
               >
                 <Mail className="h-4 w-4 shrink-0" strokeWidth={1.7} aria-hidden="true" />
                 <span className="truncate">{contact.email}</span>
@@ -80,7 +82,10 @@ export default function ContactsGrid({ contacts }: { contacts: Contact[] }) {
               <div className="flex min-w-0 items-center gap-2.5 text-muted-foreground">
                 <Phone className="h-4 w-4 shrink-0" strokeWidth={1.7} aria-hidden="true" />
                 {contact.phone ? (
-                  <a href={`tel:${contact.phone}`} className="truncate hover:text-primary">
+                  <a
+                    href={`tel:${contact.phone}`}
+                    className="pointer-events-auto truncate hover:text-primary"
+                  >
                     {contact.phone}
                   </a>
                 ) : (
@@ -93,12 +98,12 @@ export default function ContactsGrid({ contacts }: { contacts: Contact[] }) {
               </div>
             </div>
 
-            <div className="relative mt-5 flex items-center justify-between border-t border-white/10 pt-4">
+            <div className="pointer-events-none relative z-10 mt-5 flex items-center justify-between border-t border-white/10 pt-4">
               <span className="inline-flex items-center gap-1.5 rounded-full border border-white/10 bg-white/5 px-2.5 py-1 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
                 <MapPin className="h-3 w-3" aria-hidden="true" />
                 {contact.addresses.length} {contact.addresses.length === 1 ? "address" : "addresses"}
               </span>
-              <div className="flex items-center gap-1">
+              <div className="pointer-events-auto flex items-center gap-1">
                 <Link
                   href={`/contacts/${contact.id}/edit`}
                   aria-label={`Edit ${contact.full_name}`}

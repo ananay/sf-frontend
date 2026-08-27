@@ -54,7 +54,7 @@ describe("ContactsGrid", () => {
 
     expect(screen.getByRole("list", { name: "Contacts" })).toBeInTheDocument();
     expect(screen.getAllByRole("listitem")).toHaveLength(CONTACTS.length);
-    expect(screen.getByRole("link", { name: "Ada Lovelace" })).toHaveAttribute(
+    expect(screen.getByRole("link", { name: "Open Ada Lovelace" })).toHaveAttribute(
       "href",
       "/contacts/1",
     );
