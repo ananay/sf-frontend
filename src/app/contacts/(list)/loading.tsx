@@ -7,18 +7,22 @@
  */
 export default function ContactsLoading() {
   return (
-    <div className="mx-auto max-w-5xl space-y-6 px-4 py-8" aria-busy="true">
+    <div className="mx-auto max-w-6xl space-y-7 px-4 py-10 sm:px-6" aria-busy="true">
       <span className="sr-only">Loading contacts…</span>
 
       <div className="h-8 w-40 animate-pulse rounded-md bg-secondary" />
       <div className="h-9 w-full animate-pulse rounded-md bg-secondary" />
 
-      <div className="divide-y divide-hairline overflow-hidden rounded-lg border border-border bg-card">
+      <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
         {Array.from({ length: 6 }).map((_, index) => (
-          <div key={index} className="flex items-center gap-3 px-4 py-3">
-            <div className="h-8 w-8 animate-pulse rounded-full bg-secondary" />
-            <div className="h-4 flex-1 animate-pulse rounded bg-secondary" />
-            <div className="hidden h-4 w-48 animate-pulse rounded bg-secondary sm:block" />
+          <div key={index} className="glass-card h-64 animate-pulse rounded-3xl p-5">
+            <div className="flex items-center gap-3">
+              <div className="h-14 w-14 rounded-full bg-secondary/70" />
+              <div className="space-y-2">
+                <div className="h-4 w-32 rounded bg-secondary/70" />
+                <div className="h-3 w-24 rounded bg-secondary/50" />
+              </div>
+            </div>
           </div>
         ))}
       </div>

@@ -46,7 +46,7 @@ export default async function ContactDetailPage({ params }: PageProps) {
   const subtitle = jobLine(contact);
 
   return (
-    <div className="mx-auto max-w-3xl space-y-6 px-4 py-8">
+    <div className="mx-auto max-w-3xl space-y-6 px-4 py-10 sm:px-6">
       <Link
         href="/contacts"
         className="inline-flex items-center gap-1 text-[13px] text-muted-foreground hover:text-foreground"
@@ -87,7 +87,7 @@ export default async function ContactDetailPage({ params }: PageProps) {
         </div>
       </header>
 
-      <dl className="rounded-lg border border-border bg-card">
+      <dl className="glass-panel overflow-hidden rounded-3xl">
         <Row label="Email">
           <a href={`mailto:${contact.email}`} className="text-primary hover:underline">
             {contact.email}
@@ -112,7 +112,7 @@ export default async function ContactDetailPage({ params }: PageProps) {
         </Row>
       </dl>
 
-      <dl className="rounded-lg border border-border bg-card/50 text-[13px]">
+      <dl className="glass-panel overflow-hidden rounded-3xl text-[13px]">
         <Row label="ID">
           <span className="font-mono">{contact.id}</span>
         </Row>

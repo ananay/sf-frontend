@@ -65,7 +65,7 @@ export default function ContactForm({
   }
 
   return (
-    <form action={formAction} noValidate className="space-y-8">
+    <form action={formAction} noValidate className="glass-panel space-y-8 rounded-3xl p-5 sm:p-7">
       {state.status === "error" && state.message ? (
         <div
           role="alert"
@@ -89,7 +89,7 @@ export default function ContactForm({
         <fieldset key={group.title} className="space-y-4">
           <legend className="sr-only">{group.title}</legend>
 
-          <div className="border-b border-hairline pb-2">
+          <div className="border-b border-white/10 pb-2">
             <h2 className="font-display text-sm font-semibold text-foreground">
               {group.title}
             </h2>
@@ -120,7 +120,7 @@ export default function ContactForm({
         error={state.fieldErrors?.addresses}
       />
 
-      <div className="flex items-center gap-2 border-t border-hairline pt-4">
+      <div className="flex items-center gap-2 border-t border-white/10 pt-4">
         <SubmitButton label={submitLabel} />
         <Link href={cancelHref} className={buttonClasses("secondary")}>
           Cancel
